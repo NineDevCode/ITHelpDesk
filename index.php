@@ -1,0 +1,1 @@
+<?php Header("Location: ./Views/Auth/Login.php")?>

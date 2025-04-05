@@ -1,0 +1,10 @@
+.list-work{
+    transition: .5s ease;
+    color: black;
+}
+.list-work:hover{
+    background-color: #E1E1E1;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: .5s ease;
+}

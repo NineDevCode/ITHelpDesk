@@ -1,6 +1,11 @@
 <?php
 session_start();
 require_once '../../vendor/autoload.php';
+
+// Ensure Google API Client classes are loaded
+use Google\Client as Google_Client;
+use Google\Service\Oauth2 as Google_Service_Oauth2;
+
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
 

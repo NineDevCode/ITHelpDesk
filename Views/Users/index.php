@@ -75,7 +75,7 @@ checkLogin();
 			<div class="navbar-nav justify-content-end">
 				<div class="navbar-item navbar-user dropdown">
 					<a href="#" class="navbar-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-						<img src="<?= $_SESSION['user']['picture']?>" alt="" /> 
+						<img src="<?= $_SESSION['user']['picture']?>"/> 
 						<span class="d-none d-md-inline"><?= $_SESSION['user']['name'] ?></span> <b class="caret ms-lg-2"></b>
 					</a>
 					<div class="dropdown-menu dropdown-menu-end me-1">

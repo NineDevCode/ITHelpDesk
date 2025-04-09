@@ -127,7 +127,7 @@ checkLogin();
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ HDC</div>
                                 </a>
                             </div>
-                            <div class="menu-item active">
+                            <div class="menu-item">
                                 <a href="./web.php" class="menu-link">
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี</div>
                                 </a>
@@ -137,7 +137,7 @@ checkLogin();
                                     <div class="menu-text">การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล</div>
                                 </a>
                             </div>
-                            <div class="menu-item">
+                            <div class="menu-item active">
                                 <a href="./other.php" class="menu-link">
                                     <div class="menu-text">อื่น ๆ</div>
                                 </a>
@@ -170,8 +170,8 @@ checkLogin();
             }
             ?><small>กลุ่มงานสุขภาพดิจิทัล สสจ.อุทัยธานี</small></h1>
             <!-- END page-header -->
-            <form action="../../Routes/routes.php?route_name=web_create" method="POST" enctype="multipart/form-data">
-                <!-- BEGIN panel -->
+            <!-- BEGIN panel -->
+             <form action="../../Routes/routes.php?route_name=other_create" method="POST">
                 <div class="card">
                     <div class="card-header">
                         <h6>ข้อมูลทั่วไป</h6>
@@ -205,8 +205,7 @@ checkLogin();
                                 </div>
                                 <div class="col-6">
                                     <select name="department_id" id="department_id" class="form-select">
-                                        <option value="" disabled selected>โปรดเลือกหน่วยงาน (ถ้าไม่มีไม่ต้องเลือก)
-                                        </option>
+                                        <option value="" disabled selected>โปรดเลือกหน่วยงาน (ถ้าไม่มีไม่ต้องเลือก)</option>
                                         <option value="1">ประกันสุขภาพ</option>
                                     </select>
                                 </div>
@@ -217,8 +216,8 @@ checkLogin();
                                         required>
                                 </div>
                                 <div class="col-6">
-                                    <input type="text" name="tel" id="tel" class="form-control"
-                                        placeholder="เบอร์โทรศัพท์" required>
+                                    <input type="text" name="tel" id="tel" class="form-control" placeholder="เบอร์โทรศัพท์"
+                                        required>
                                 </div>
                             </div>
                         </div>
@@ -231,64 +230,11 @@ checkLogin();
                     <div class="card-body">
                         <div class="container">
                             <div class="row my-3">
-                                <div class="col-6">
-                                    <input type="text" name="urlpage" id="urlpage" class="form-control"
-                                        placeholder="URL ของหน้าเว็บที่ต้องการให้ปรับปรุง" required="required">
-                                    <textarea name="problemdetail" id="promblemdetail" class="form-control mt-2"
-                                        placeholder="รายละเอียดของปัญหาที่พบ" rows="8"></textarea>
-                                </div>
-                                <div class="col-6">
-                                    <label for="problemtype" class="my-2">ประเภทของปัญหาที่พบ
-                                        (เลือกได้มากกว่าหนึ่งข้อ)</label>
-                                    <div class="form-check my-2">
-                                        <input class="form-check-input" type="checkbox" id="promlem1" name="promlem1"
-                                            value="เว็บไซต์โหลดช้า" />
-                                        <label class="form-check-label" for="promlem1">เว็บไซต์โหลดช้า</label>
-                                    </div>
-                                    <div class="form-check my-2">
-                                        <input class="form-check-input" type="checkbox" id="promlem2" name="promlem2"
-                                            value="เว็บไซต์ไม่สามารถเข้าใช้งานได้" />
-                                        <label class="form-check-label"
-                                            for="promlem2">เว็บไซต์ไม่สามารถเข้าใช้งานได้</label>
-                                    </div>
-                                    <div class="form-check my-2">
-                                        <input class="form-check-input" type="checkbox" id="promlem3" name="promlem3"
-                                            value="ลิงก์ไม่ทำงาน" />
-                                        <label class="form-check-label" for="promlem3">ลิงก์ไม่ทำงาน</label>
-                                    </div>
-                                    <div class="form-check my-2">
-                                        <input class="form-check-input" type="checkbox" id="promlem4" name="promlem4"
-                                            value="ข้อความแสดงข้อผิดพลาด" />
-                                        <label class="form-check-label" for="promlem4">ข้อความแสดงข้อผิดพลาด (Error
-                                            Message)</label>
-                                    </div>
-                                    <div class="form-check my-2">
-                                        <input class="form-check-input" type="checkbox" id="promlem5" name="promlem5"
-                                            value="ปัญหาการเข้าสู่ระบบ/สมัครสมาชิก" />
-                                        <label class="form-check-label"
-                                            for="promlem5">ปัญหาการเข้าสู่ระบบ/สมัครสมาชิก</label>
-                                    </div>
-                                    <div class="form-check my-2 d-flex align-items-center">
-                                        <input class="form-check-input me-2" type="checkbox" id="promlem6"
-                                            name="promlem6" onclick="handleOther(event)" value="อื่น ๆ" />
-                                        <label class="form-check-label" for="promlem6" class="me-2">อื่น ๆ
-                                        </label>
-                                        <div id="otherProblem" class="mt-2">
-                                        </div>
-                                    </div>
+                                <div class="col-12">
+                                    <textarea name="question" id="question" class="form-control mt-2"
+                                        placeholder="ข้อคำถาม" rows="8"></textarea>
                                 </div>
                             </div>
-                            <div class="row my-3">
-                                <div class="col-6">
-                                    <input type="file" name="image" id="image" class="form-control"
-                                        placeholder="แนบไฟล์ภาพหน้าจอ (ถ้ามี)">
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" name="detail" id="detail" class="form-control"
-                                        placeholder="รายละเอียดเพิ่มเติ่ม">
-                                </div>
-                            </div>
-
                         </div>
                     </div>
                 </div>
@@ -313,7 +259,7 @@ checkLogin();
 
     <script>
         function handleOther() {
-            var checkbox = document.getElementById("promlem6");
+            var checkbox = document.getElementById("checkbox5");
             var otherProblemContainer = document.getElementById("otherProblem");
 
             if (checkbox.checked) {
@@ -323,7 +269,7 @@ checkLogin();
                     otherInput.type = "text";
                     otherInput.name = "otherProblem";
                     otherInput.id = "otherProblemInput"; // Unique ID for the input
-                    otherInput.className = "form-control ms-2";
+                    otherInput.className = "form-control mt-2";
                     otherInput.placeholder = "กรุณาระบุปัญหาอื่น ๆ";
                     otherProblemContainer.appendChild(otherInput);
                 }

@@ -5,8 +5,7 @@ error_reporting(E_ALL);
 
 // Include Composer's autoloader
 require_once __DIR__ . '/../../vendor/autoload.php';
-include "../../Class/Connect.php";
-include "../../Class/Class.php";
+include '../../Class/Class.php';
 include "../../Routes/middleware.php";
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -15,19 +14,8 @@ if (session_status() === PHP_SESSION_NONE) {
 
 authMiddlewareAdmin();
 
-$hdc = new HDC;
-$web = new Web;
-$report = new Report;
-$other = new Other;
-
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
-
-
-
-
-
-
 ?>
 
 <!DOCTYPE html>
@@ -43,18 +31,25 @@ $dotenv->load();
     <!-- ================== BEGIN core-css ================== -->
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+    <link href="../../Assets/plugins/lightbox2/dist/css/lightbox.css" rel="stylesheet" />
     <link href="../../Assets/css/vendor.min.css" rel="stylesheet" />
     <link href="../../Assets/css/google/app.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="../../Assets/css/mystyle.css">
-    <link href="../../Assets/plugins/nvd3/build/nv.d3.css" rel="stylesheet" />
     <!-- ================== END core-css ================== -->
+    <style>
+        @media (min-width: 1200px) {
+            .gallery .image {
+                width: 100%;
+            }
+        }
+    </style>
 </head>
 
 <body>
     <!-- BEGIN #loader -->
-    <!-- <div id="loader" class="app-loader">
+    <div id="loader" class="app-loader">
         <span class="spinner"></span>
-    </div> -->
+    </div>
     <!-- END #loader -->
 
     <!-- BEGIN #app -->
@@ -68,7 +63,7 @@ $dotenv->load();
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a href="index.php" class="navbar-brand">
+                <a href="index.html" class="navbar-brand">
                     <b class="me-1">IT</b> HelpDesk
 
                 </a>
@@ -117,7 +112,7 @@ $dotenv->load();
                         </a>
                     </div>
                     <div class="menu-header">แถบนำทาง</div>
-                    <div class="menu-item active">
+                    <div class="menu-item">
                         <a href="./index.php" class="menu-link">
                             <div class="menu-icon">
                                 <i class="material-icons">donut_small</i>
@@ -125,7 +120,7 @@ $dotenv->load();
                             <div class="menu-text">ภาพรวมระบบ</div>
                         </a>
                     </div>
-                    <div class="menu-item has-sub">
+                    <div class="menu-item has-sub active">
                         <a href="javascript:;" class="menu-link">
                             <div class="menu-icon">
                                 <i class="material-icons">report</i>
@@ -134,7 +129,7 @@ $dotenv->load();
                             <div class="menu-caret"></div>
                         </a>
                         <div class="menu-submenu">
-                            <div class="menu-item">
+                            <div class="menu-item active">
                                 <a href="./hdc.php" class="menu-link">
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ HDC</div>
                                 </a>
@@ -169,84 +164,103 @@ $dotenv->load();
         <!-- BEGIN #content -->
         <div id="content" class="app-content">
             <!-- BEGIN page-header -->
-            <h1 class="page-header"><?php if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Views/Users/hdc.php") {
+            <h1 class="page-header">รายละเอียดข้อมูล <?php if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Backoffice/Admin/hdc.php") {
                 echo "การใช้งานระบบเว็บไซต์ HDC ";
-            } else if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Views/Users/web.php") {
+            } else if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Backoffice/Admin/web.php") {
                 echo "การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี";
-            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Views/Users/report.php") {
+            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Backoffice/Admin/report.php") {
                 echo "การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล";
-            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Views/Users/other.php") {
+            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Backoffice/Admin/orther.php") {
                 echo "อื่น ๆ";
             } else {
                 echo "ระบบ IT Helpdesk ";
             }
             ?><small>กลุ่มงานสุขภาพดิจิทัล สสจ.อุทัยธานี</small></h1>
-            <!-- END page-header -->
-            <!-- BEGIN panel -->
+            <?php
+            $other = new Other();
+            $other_info = $other->get_other_byid($_GET['other_id']);
+            ?>
             <div class="card">
+                <div class="card-header">
+                    <h6>ข้อมูลทั่วไป</h6>
+                </div>
                 <div class="card-body">
-                    <div class="container-fluid">
-                        <div class="row">
-                            <div class="col-3">
-                                <?php
-                                $result_hdc = $hdc->get_hdc_count();
-                                $result_web = $web->get_web_count();
-                                $result_report = $report->get_report_count();
-                                $result_other = $other->get_other_count();
-                                ?>
-                                <!-- begin widget-stats -->
-                                <div class="widget widget-stats bg-teal mb-10px">
-                                    <div class="stats-icon stats-icon-lg"><i class="fa fa-book fa-fw"></i></div>
-                                    <div class="stats-content">
-                                        <div class="stats-title">การใช้งานระบบเว็บไซต์ HDC</div>
-                                        <div class="stats-number"><?= $result_hdc ?></div>
-                                        <div class="stats-desc"></div>
-                                    </div>
-                                </div>
-                                <!-- end widget-stats -->
-
+                    <div class="container">
+                        <div class="row my-3">
+                            <div class="col-2">
+                                <select name="titlename" id="titlename" class="form-select" disabled>
+                                    <option value="" <?php if ($other_info['titlename'] == '') {
+                                        echo 'selected';
+                                    } ?>>โปรดเลือกคำนำหน้าชื่อ
+                                    </option>
+                                    <option value="นาย" <?php if ($other_info['titlename'] == 'นาย') {
+                                        echo 'selected';
+                                    } ?>>นาย</option>
+                                    <option value="นางสาว" <?php if ($other_info['titlename'] == 'นางสาว') {
+                                        echo 'selected';
+                                    } ?>>นางสาว
+                                    </option>
+                                    <option value="นาง" <?php if ($other_info['titlename'] == 'นาง') {
+                                        echo 'selected';
+                                    } ?>>นาง</option>
+                                </select>
                             </div>
-                            <div class="col-3"> <!-- begin widget-stats -->
-                                <div class="widget widget-stats bg-blue mb-10px">
-                                    <div class="stats-icon stats-icon-lg"><i class="fa fa-globe fa-fw"></i></div>
-                                    <div class="stats-content">
-                                        <div class="stats-title">การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี </div>
-                                        <div class="stats-number"><?= $result_web ?></div>
-                                        <div class="stats-desc"></div>
-                                    </div>
-                                </div>
-                                <!-- end widget-stats -->
+                            <div class="col-5">
+                                <input type="text" name="firstname" id="firstname" class="form-control"
+                                    placeholder="ชื่อ" value="<?= $other_info['firstname'] ?>" readonly>
                             </div>
-                            <div class="col-3"> <!-- begin widget-stats -->
-                                <div class="widget widget-stats bg-warning mb-10px">
-                                    <div class="stats-icon stats-icon-lg"><i class="fa fa-file fa-fw"></i></div>
-                                    <div class="stats-content">
-                                        <div class="stats-title">การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล</div>
-                                        <div class="stats-number"><?= $result_report ?></div>
-                                        <div class="stats-desc"></div>
-                                    </div>
-                                </div>
-                                <!-- end widget-stats -->
-                            </div>
-                            <div class="col-3"> <!-- begin widget-stats -->
-                                <div class="widget widget-stats bg-gray mb-10px">
-                                    <div class="stats-icon stats-icon-lg"><i class="fa fa-comment fa-fw"></i></div>
-                                    <div class="stats-content">
-                                        <div class="stats-title">อื่น ๆ</div>
-                                        <div class="stats-number"><?= $result_other ?></div>
-                                        <div class="stats-desc"></div>
-                                    </div>
-                                </div>
-                                <!-- end widget-stats -->
+                            <div class="col-5">
+                                <input type="text" name="lastname" id="lastname" class="form-control"
+                                    placeholder="นามสกุล" required value="<?= $other_info['lastname'] ?>" readonly>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row my-3">
+                            <div class="col-6">
+                                <select name="hoscode_id" id="hoscode_id" class="form-select hoscode_slelct" disabled>
+                                    <option value="<?= $other_info['hoscode_id'] ?>"><?= $other_info['name'] ?></option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <select name="department_id" id="department_id" class="form-select" disabled>
+                                    <option value="<?= $other_info['department_id'] ?>">
+                                        <?= $other_info['department_name'] ?>
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row my-3">
+                            <div class="col-6">
+                                <input type="email" name="email" id="email" class="form-control" placeholder="อีเมล"
+                                    value="<?= $other_info['email'] ?>" readonly>
+                            </div>
+                            <div class="col-6">
+                                <input type="text" name="tel" id="tel" class="form-control" placeholder="เบอร์โทรศัพท์"
+                                    value="<?= $other_info['tel'] ?>" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h6>รายละเอียดปัญหา</h6>
+                </div>
+                <div class="card-body">
+                    <div class="container">
+                        <div class="row my-3">
                             <div class="col-12">
-                                <div id="nv-donut-chart" class="h-500px d-flex justify-content-center"
-                                    style="width: 100%;">
-                                </div>
+                                <textarea name="question" id="question" rows="5" class="form-control"
+                                    readonly><?= $other_info['question']; ?></textarea>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                <div class="row my-3">
+                    <div class="col-12 d-flex justify-content-end">
+                        <a href="../../Routes/routes.php?route_name=accept_work_other&other_id=<?= $_GET['other_id'] ?>"
+                            class="btn btn-success">รับงาน</a>
                     </div>
                 </div>
             </div>
@@ -261,37 +275,39 @@ $dotenv->load();
     </div>
     <!-- END #app -->
 
+    <script>
+        function handleOther() {
+            var checkbox = document.getElementById("promlem6");
+            var otherProblemContainer = document.getElementById("otherProblem");
+
+            if (checkbox.checked) {
+                // Check if the input already exists to avoid duplicates
+                if (!document.getElementById("otherProblemInput")) {
+                    var otherInput = document.createElement("input");
+                    otherInput.type = "text";
+                    otherInput.name = "otherProblem";
+                    otherInput.id = "otherProblemInput"; // Unique ID for the input
+                    otherInput.className = "form-control ms-2";
+                    otherInput.placeholder = "กรุณาระบุปัญหาอื่น ๆ";
+                    otherProblemContainer.appendChild(otherInput);
+                }
+            } else {
+                // Remove the input if it exists
+                var otherInput = document.getElementById("otherProblemInput");
+                if (otherInput) {
+                    otherInput.remove();
+                }
+            }
+        }
+    </script>
     <!-- ================== BEGIN core-js ================== -->
     <script src="../../Assets/js/vendor.min.js"></script>
     <script src="../../Assets/js/app.min.js"></script>
-    <script src="../../Assets/plugins/d3/d3.min.js"></script>
-    <script src="../../Assets/plugins/nvd3/build/nv.d3.min.js"></script>
+    <script src="../../Assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+    <script src="../../Assets/plugins/isotope-layout/dist/isotope.pkgd.min.js"></script>
+    <script src="../../Assets/plugins/lightbox2/dist/js/lightbox.min.js"></script>
+    <script src="../../Assets/js/demo/gallery.demo.js"></script>
     <!-- ================== END core-js ================== -->
-    <script>
-        var pieChartData = [
-            { 'label': 'HDC', 'value': <?= $result_hdc ?>, 'color': "#009688" },
-            { 'label': 'WEB', 'value': <?= $result_web ?>, 'color': "#4284F3" },
-            { 'label': 'Report', 'value': <?= $result_report ?>, 'color': "#FF9800" },
-            { 'label': 'Other', 'value': <?= $result_other ?>, 'color': "#7A7A7A" },
-        ];
-
-        nv.addGraph(function () {
-            var chart = nv.models.pieChart()
-                .x(function (d) { return d.label })
-                .y(function (d) { return d.value })
-                .showLabels(true)
-                .labelThreshold(.05)
-                .labelType("percent")
-                .donut(true)
-                .donutRatio(0.35);
-
-            d3.select('#nv-donut-chart').append('svg')
-                .datum(pieChartData)
-                .transition().duration(350)
-                .call(chart);
-            return chart;
-        });
-    </script>
 </body>
 
 </html>

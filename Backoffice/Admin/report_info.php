@@ -12,10 +12,13 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-authMiddlewareUser();
+authMiddlewareAdmin();
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
+
+$report = new Report();
+
 ?>
 
 <!DOCTYPE html>
@@ -35,8 +38,14 @@ $dotenv->load();
     <link href="../../Assets/css/vendor.min.css" rel="stylesheet" />
     <link href="../../Assets/css/google/app.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="../../Assets/css/mystyle.css">
-    <link href="../../Assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
+
+    <link href="../../Assets/plugins/lightbox2/dist/css/lightbox.css" rel="stylesheet" />
     <!-- ================== END core-css ================== -->
+    <style>
+        .gallery .image {
+            width: 100%;
+        }
+    </style>
 </head>
 
 <body>
@@ -57,7 +66,7 @@ $dotenv->load();
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a href="index.html" class="navbar-brand">
+                <a href="index.php" class="navbar-brand">
                     <b class="me-1">IT</b> HelpDesk
 
                 </a>
@@ -72,8 +81,8 @@ $dotenv->load();
             <div class="navbar-nav justify-content-end">
                 <div class="navbar-item navbar-user dropdown">
                     <a href="#" class="navbar-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-                        <img src="<?= $_SESSION['user']['picture'] ?>" alt="" />
-                        <span class="d-none d-md-inline"><?= $_SESSION['user']['name'] ?></span> <b
+                        <img src="../../Assets/img/user/profile.png" alt="" />
+                        <span class="d-none d-md-inline"><?= $_SESSION['admin_name'] ?></span> <b
                             class="caret ms-lg-2"></b>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end me-1">
@@ -98,10 +107,10 @@ $dotenv->load();
                             <div class="menu-profile-info">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1">
-                                        <?= $_SESSION['user']['name'] ?>
+                                        <?= $_SESSION['admin_name'] ?>
                                     </div>
                                 </div>
-                                <small><?= $_SESSION['user']['email'] ?></small>
+                                <small><?= $_SESSION['admin_email'] ?></small>
                             </div>
                         </a>
                     </div>
@@ -109,10 +118,9 @@ $dotenv->load();
                     <div class="menu-item">
                         <a href="./index.php" class="menu-link">
                             <div class="menu-icon">
-                                <i class="material-icons">description</i>
+                                <i class="material-icons">donut_small</i>
                             </div>
-
-                            <div class="menu-text">รายการ</div>
+                            <div class="menu-text">ภาพรวมระบบ</div>
                         </a>
                     </div>
                     <div class="menu-item has-sub active">
@@ -173,6 +181,7 @@ $dotenv->load();
             ?><small>กลุ่มงานสุขภาพดิจิทัล สสจ.อุทัยธานี</small></h1>
             <!-- END page-header -->
             <!-- BEGIN panel -->
+            <?php $report_info = $report->get_report_byid($_GET['report_id']) ?>
             <form action="../../Routes/routes.php?route_name=report_create" method="POST" enctype="multipart/form-data">
                 <div class="card">
                     <div class="card-header">
@@ -182,65 +191,59 @@ $dotenv->load();
                         <div class="container">
                             <div class="row my-3">
                                 <div class="col-2">
-                                    <select name="titlename" id="titlename" class="form-select" required>
-                                        <option value="" disabled selected>โปรดเลือกคำนำหน้าชื่อ</option>
-                                        <option value="นาย">นาย</option>
-                                        <option value="นางสาว">นางสาว</option>
-                                        <option value="นาง">นาง</option>
+                                    <select name="titlename" id="titlename" class="form-select" disabled>
+                                        <option value="" <?php if ($report_info['titlename'] == '') {
+                                            echo 'selected';
+                                        } ?>>โปรดเลือกคำนำหน้าชื่อ
+                                        </option>
+                                        <option value="นาย" <?php if ($report_info['titlename'] == 'นาย') {
+                                            echo 'selected';
+                                        } ?>>นาย</option>
+                                        <option value="นางสาว" <?php if ($report_info['titlename'] == 'นางสาว') {
+                                            echo 'selected';
+                                        } ?>>นางสาว
+                                        </option>
+                                        <option value="นาง" <?php if ($report_info['titlename'] == 'นาง') {
+                                            echo 'selected';
+                                        } ?>>นาง</option>
                                     </select>
                                 </div>
                                 <div class="col-5">
                                     <input type="text" name="firstname" id="firstname" class="form-control"
-                                        placeholder="ชื่อ" required>
+                                        placeholder="ชื่อ" value="<?= $report_info['firstname'] ?>" readonly>
                                 </div>
                                 <div class="col-5">
                                     <input type="text" name="lastname" id="lastname" class="form-control"
-                                        placeholder="นามสกุล" required>
+                                        placeholder="นามสกุล" value="<?= $report_info['lastname'] ?>" readonly>
                                 </div>
                             </div>
                             <div class="row my-3">
                                 <div class="col-6">
-                                    <select name="hoscode_id" id="hoscode_id" class="form-select hoscode_select"
-                                        required>
-                                        <option value=""></option>
-                                        <?php
-                                        $hoscode = new Hoscode();
-                                        $hoscode_select = $hoscode->get_hoscode();
-                                        foreach ($hoscode_select as $item) {
-                                            ?>
-                                            <option value="<?= $item['hoscode_id'] ?>">
-                                                <?= $item['hoscode_id'] . ' ' . $item['name'] ?>
-                                            </option>
-                                            <?php
-                                        }
-                                        ?>
+                                    <select name="hoscode_id" id="hoscode_id" class="form-select" disabled>
+                                        <option value="">โปรดเลือกหน่วยงาน</option>
+                                        <option value="<?= $report_info['hoscode_id'] ?>" selected>
+                                            <?= $report_info['name'] ?>
+                                        </option>
                                     </select>
                                 </div>
                                 <div class="col-6">
-                                    <select name="department_id" id="department_id"
-                                        class="form-select department_select" required>
-                                        <option value=""></option>
-                                        <?php
-                                        $department = new Department();
-                                        $department_select = $department->get_departments();
-                                        foreach ($department_select as $item) {
-                                            ?>
-                                            <option value="<?= $item['department_id'] ?>"><?= $item['department_name'] ?>
-                                            </option>
-                                            <?php
-                                        }
-                                        ?>
+                                    <select name="department_id" id="department_id" class="form-select" disabled>
+                                        <option value="">โปรดเลือกหน่วยงาน (ถ้าไม่มีไม่ต้องเลือก)
+                                        </option>
+                                        <option value="<?= $report_info['department_id'] ?>" selected>
+                                            <?= $report_info['department_name'] ?>
+                                        </option>
                                     </select>
                                 </div>
                             </div>
                             <div class="row my-3">
                                 <div class="col-6">
                                     <input type="email" name="email" id="email" class="form-control" placeholder="อีเมล"
-                                        required>
+                                        value="<?= $report_info['email'] ?>" readonly>
                                 </div>
                                 <div class="col-6">
                                     <input type="text" name="tel" id="tel" class="form-control"
-                                        placeholder="เบอร์โทรศัพท์" required>
+                                        placeholder="เบอร์โทรศัพท์" value="<?= $report_info['tel'] ?>" readonly>
                                 </div>
                             </div>
                         </div>
@@ -255,38 +258,44 @@ $dotenv->load();
                             <div class="row my-3">
                                 <div class="col-6">
                                     <input type="text" name="reportname" id="reportname" class="form-control"
-                                        placeholder="ชื่อหรือประเภทของรายงานที่ต้องการ" required>
+                                        placeholder="ชื่อหรือประเภทของรายงานที่ต้องการ" required="required"
+                                        value="<?= $report_info['reportname'] ?>" readonly>
                                 </div>
                                 <div class="col-6">
-                                    <select name="reporttypedate" id="reporttypedate" class="form-select" required>
-                                        <option value="" disabled selected>โปรดเลือกช่วงเวลาของข้อมูลที่ต้องการ</option>
-                                        <option value="รายวัน">รายวัน</option>
-                                        <option value="รายปี พศ.">รายปี พศ.</option>
-                                        <option value="รายปีงบประมาณ">รายปีงบประมาณ</option>
-                                        <option value="อื่น ๆ">อื่น ๆ</option>
+                                    <select name="reporttypedate" id="reporttypedate" class="form-select" disabled>
+                                        <option value="<?= $report_info['reporttypedate'] ?>" selected>
+                                            <?= $report_info['reporttypedate'] ?>
+                                        </option>
                                     </select>
                                 </div>
                             </div>
                             <div class="row my-3">
                                 <div class="col-6">
                                     <input type="text" name="reportdatedetail" id="reportdatedetail"
-                                        class="form-control" placeholder="รายละเอียดช่วงเวลาที่คุณ (ถ้ามี)">
+                                        class="form-control" placeholder="รายละเอียดช่วงเวลาที่คุณ (ถ้ามี)"
+                                        value="<?= $report_info['reportdatedetail'] ?>" readonly>
                                     <div>
                                         <label for="filetype" class="mt-3">รูปแบบของรายงานที่ต้องการ</label>
                                     </div>
                                     <div class="form-check form-check-inline mt-2">
-                                        <input class="form-check-input" type="checkbox" id="PDF" name="PDF"
-                                            value="true" />
+                                        <input class="form-check-input" type="checkbox" id="PDF" name="PDF" value="true"
+                                            <?php if ($report_info['PDF'] == true) {
+                                                echo "checked";
+                                            } ?> disabled />
                                         <label class="form-check-label" for="PDF">ไฟล์ PDF</label>
                                     </div>
                                     <div class="form-check form-check-inline mt-2">
                                         <input class="form-check-input" type="checkbox" id="Excel" name="Excel"
-                                            value="true" />
+                                            value="true" <?php if ($report_info['Excel'] == true) {
+                                                echo "checked";
+                                            } ?> disabled />
                                         <label class="form-check-label" for="Excel">ไฟล์ Excel</label>
                                     </div>
                                     <div class="form-check form-check-inline mt-2">
-                                        <input class="form-check-input" type="checkbox" id="CSV" name="CSV"
-                                            value="true" />
+                                        <input class="form-check-input" type="checkbox" id="CSV" name="CSV" value="true"
+                                            <?php if ($report_info['CSV'] == true) {
+                                                echo "checked";
+                                            } ?> disabled />
                                         <label class="form-check-label" for="CSV">ไฟล์ CSV</label>
                                     </div>
                                 </div>
@@ -296,16 +305,25 @@ $dotenv->load();
                                     </div>
                                     <div class="form-check form-check-inline my-2">
                                         <input class="form-check-input" type="radio" id="reporttype" name="reporttype"
-                                            value="summary" onchange="handleReportTypeDetail()" />
+                                            value="summary" onchange="handleReportTypeDetail()" <?php if ($report_info['reporttype'] == 'summary') {
+                                                echo "checked";
+                                            } ?> disabled />
                                         <label class="form-check-label" for="reporttype">Summary</label>
                                     </div>
                                     <div class="form-check form-check-inline my-2">
                                         <input class="form-check-input" type="radio" id="reporttype" value="personal"
-                                            name="reporttype" onchange="handleReportTypeDetail()" />
+                                            name="reporttype" onchange="handleReportTypeDetail()" <?php if ($report_info['reporttype'] == 'personal') {
+                                                echo "checked";
+                                            } ?> disabled />
                                         <label class="form-check-label" for="reporttype">ข้อมูลส่วนบุคคล โปรดระบุ
                                             เนื้อหาข้อมูลที่ต้องการ (ชื่อ ที่อยู่ อายุ เพศ)</label>
                                     </div>
-                                    <div id="reporttypedetailcontainer"></div>
+                                    <div id="reporttypedetailcontainer">
+                                        <?php if ($report_info['reporttypedetail']) { ?>
+                                            <textarea name="reporttypedetail" id="reporttypedetail" class="form-control"
+                                                readonly><?= $report_info['reporttypedetail'] ?></textarea>
+                                        <?php } ?>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -318,11 +336,13 @@ $dotenv->load();
                             <div class="row">
                                 <div class="col-6">
                                     <input type="text" name="reportdate" id="reportdate" class="form-control"
-                                        placeholder="วันที่ต้องการรับรายงาน" required>
+                                        placeholder="วันที่ต้องการรับรายงาน" required
+                                        value="<?= $report_info['reportdate'] ?>" readonly>
                                 </div>
                                 <div class="col-6">
                                     <input type="email" name="emailback" id="emailback" class="form-control"
-                                        placeholder="อีเมลที่ต้องการให้ส่งรายงาน" required>
+                                        placeholder="อีเมลที่ต้องการให้ส่งรายงาน"
+                                        value="<?= $report_info['emailback'] ?>" readonly>
                                 </div>
                             </div>
                         </div>
@@ -335,24 +355,60 @@ $dotenv->load();
                             <div class="container">
                                 <div class="row">
                                     <div class="col-6">
-                                        <label for="image">แนบภาพหน้าจอรายงานที่ต้องการ (ถ้ามี)</label>
-                                        <input type="file" name="image" id="image" class="form-control mt-2"
-                                            placeholder="แนบภาพหน้าจอ (ถ้ามี)">
+                                        <label for="image">แนบภาพหน้าจอที่ต้องการ (ถ้ามี)</label>
+                                        <?php if ($report_info['image'] != NULL) { ?>
+                                            <div id="gallery" class="gallery w-100">
+                                                <div class="image gallery-group-1">
+                                                    <div class="image-inner">
+                                                        <a href="../<?= $report_info['image'] ?>"
+                                                            data-lightbox="gallery-group-1" class="w-100">
+                                                            <div class="img w-100"
+                                                                style="background-image: url('../<?= $report_info['image'] ?>')">
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php } ?>
                                     </div>
                                     <div class="col-6">
                                         <textarea name="reportdetail" id="reportdetail"
-                                            placeholder="ข้อเสนอแนะหรือรายละเอียดเพิ่มเติมเกี่ยวกับรายงาน"
-                                            class="form-control mt-2"></textarea>
+                                            placeholder="มีข้อเสนอแนะหรือรายละเอียดเพิ่มเติมเกี่ยวกับรายงาน"
+                                            class="form-control mt-2"
+                                            readonly><?= $report_info['reportdetail'] ?></textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <?php if ($report_info['status'] == 'finished') { ?>
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            รายระเอียดการจบงาน
+                        </div>
+                        <div class="card-body">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <textarea name="finish_detail" id="finish_detail" class="form-control" rows="5"
+                                            readonly><?= $report_info['finish_detail'] ?></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php } ?>
                 <div class="container">
                     <div class="row my-3">
                         <div class="col-12 d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">ส่งข้อมูล</button>
+                            <button type="button" class="btn btn-danger"
+                                onclick="redirectToPreviousPage()">กลับ</button>
+                            <script>
+                                function redirectToPreviousPage() {
+                                    window.history.back();
+                                }
+                            </script>
                         </div>
                     </div>
                 </div>
@@ -422,7 +478,9 @@ $dotenv->load();
     <script src="../../Assets/js/app.min.js"></script>
     <script src="../../Assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
     <script src="../../Assets/plugins/bootstrap-datepicker/dist/locales/bootstrap-datepicker.th.min.js"></script>
-    <script src="../../Assets/plugins/select2/dist/js/select2.min.js"></script>
+    <script src="../../Assets/plugins/isotope-layout/dist/isotope.pkgd.min.js"></script>
+    <script src="../../Assets/plugins/lightbox2/dist/js/lightbox.min.js"></script>
+    <script src="../../Assets/js/demo/gallery.demo.js"></script>
     <script>
         $("#reportdate").datepicker({
             language: 'th', // Set language to Thai
@@ -431,10 +489,6 @@ $dotenv->load();
             autoclose: true, // Close the datepicker after selecting a date
             thaiyear: true // Enable Buddhist calendar year (พ.ศ.)
         });
-    </script>
-    <script>
-        $(".hoscode_select").select2({ placeholder: "โปรดเลือกหน่วยบริการ" });
-        $(".department_select").select2({ placeholder: "โปรดเลือกแผนก / กลุ่มงาน" });
     </script>
     <!-- ================== END core-js ================== -->
 </body>

@@ -36,6 +36,7 @@ function saveImage($file, $path)
         throw new Exception("No file uploaded or there was an error uploading the file.");
     }
 }
+
 class HDC
 {
     function create_hdc($_post, $_files, $path)
@@ -43,15 +44,17 @@ class HDC
         $conn = new Connect();
         $conn = $conn->conn;
 
-        $imagePath = saveImage($_files['image'], $path); // Save the image and get the file path
+        if ($_files['image']['name'] != '' && $_files['image']['size'] != 0) {
+            $imagePath = saveImage($_files['image'], $path); // Save the image and get the file path
+        }
 
         // Prepare SQL query to insert all required columns
         $sql = "INSERT INTO hdc (
-                    titlename, firstname, lastname, hoscode_id, department_id, email, tel, urlpage,
+                    titlename, firstname, lastname, hoscode_id, department_id, email, tel, urlpage, promblemdetail,
                     promlem1, promlem2, promlem3, promlem4, promlem5, promlem6, otherProblem,
                     image, detail
                 ) VALUES (
-                    :titlename, :firstname, :lastname, :hoscode_id, :department_id, :email, :tel, :urlpage,
+                    :titlename, :firstname, :lastname, :hoscode_id, :department_id, :email, :tel, :urlpage, :promblemdetail,
                     :promlem1, :promlem2, :promlem3, :promlem4, :promlem5, :promlem6, :otherProblem,
                     :image, :detail
                 )";
@@ -67,6 +70,7 @@ class HDC
         $stmt->bindParam(':email', $_post['email']);
         $stmt->bindParam(':tel', $_post['tel']);
         $stmt->bindParam(':urlpage', $_post['urlpage']);
+        $stmt->bindParam(':promblemdetail', $_post['promblemdetail']);
         $stmt->bindParam(':promlem1', $_post['promlem1']);
         $stmt->bindParam(':promlem2', $_post['promlem2']);
         $stmt->bindParam(':promlem3', $_post['promlem3']);
@@ -86,7 +90,7 @@ class HDC
             throw new Exception("Database error: " . $errorInfo[2]);
         }
     }
-    public function get_hdc_count()
+    function get_hdc_count()
     {
         try {
             $conn = new Connect();
@@ -108,13 +112,59 @@ class HDC
             $conn = new Connect();
             $conn = $conn->conn;
 
-            $stmt = $conn->prepare("SELECT * FROM hdc h INNER JOIN hoscode  hc ON h.hoscode_id = hc.hoscode_id INNER JOIN department d ON d.department_id = d.department_id");
+            $stmt = $conn->prepare("SELECT * FROM hdc h INNER JOIN hoscode  hc ON h.hoscode_id = hc.hoscode_id INNER JOIN department d ON h.department_id = d.department_id");
             $stmt->execute();
 
             $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
             return $result;
         } catch (Exception $e) {
             throw new Exception("" . $e->getMessage());
+        }
+    }
+
+    function get_hdc_byid($id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM hdc INNER JOIN hoscode hc ON hdc.hoscode_id = hc.hoscode_id INNER JOIN department d ON hdc.department_id = d.department_id WHERE hdc_id = :hdc_id");
+            $stmt->bindParam(":hdc_id", $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("" . $e->getMessage());
+        }
+    }
+
+    function change_status($status, $hdc_id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+
+            $stmt = $conn->prepare("UPDATE hdc SET status = :status WHERE hdc_id = :hdc_id");
+            $stmt->bindParam(":hdc_id", $hdc_id);
+            $stmt->bindParam(":status", $status);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function add_finish_detail($_post, $hdc_id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("UPDATE hdc SET finish_detail = :finish_detail WHERE hdc_id = :hdc_id");
+            $stmt->bindParam(":finish_detail", $_post["finish_detail"]);
+            $stmt->bindParam(":hdc_id", $hdc_id);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
         }
     }
 }
@@ -126,15 +176,16 @@ class Web
         $conn = new Connect();
         $conn = $conn->conn;
 
-        $imagePath = saveImage($_files['image'], $path); // Save the image and get the file path
-
+        if ($_files['image']['name'] != '' && $_files['image']['size'] != 0) {
+            $imagePath = saveImage($_files['image'], $path); // Save the image and get the file path
+        }
         // Prepare SQL query to insert all required columns
         $sql = "INSERT INTO web (
-                    titlename, firstname, lastname, hoscode_id, department_id, email, tel, urlpage,
+                    titlename, firstname, lastname, hoscode_id, department_id, email, tel, urlpage, problemdetail,
                     promlem1, promlem2, promlem3, promlem4, promlem5, promlem6, otherProblem,
                     image, detail
                 ) VALUES (
-                    :titlename, :firstname, :lastname, :hoscode_id, :department_id, :email, :tel, :urlpage,
+                    :titlename, :firstname, :lastname, :hoscode_id, :department_id, :email, :tel, :urlpage, :problemdetail,
                     :promlem1, :promlem2, :promlem3, :promlem4, :promlem5, :promlem6, :otherProblem,
                     :image, :detail
                 )";
@@ -150,6 +201,7 @@ class Web
         $stmt->bindParam(':email', $_post['email']);
         $stmt->bindParam(':tel', $_post['tel']);
         $stmt->bindParam(':urlpage', $_post['urlpage']);
+        $stmt->bindParam(':problemdetail', $_post['problemdetail']);
         $stmt->bindParam(':promlem1', $_post['promlem1']);
         $stmt->bindParam(':promlem2', $_post['promlem2']);
         $stmt->bindParam(':promlem3', $_post['promlem3']);
@@ -185,6 +237,66 @@ class Web
             throw new Exception("Error fetching HDC count: " . $e->getMessage());
         }
     }
+
+    function get_web_all()
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM web w INNER JOIN hoscode h ON w.hoscode_id = h.hoscode_id INNER JOIN department d ON w.department_id = d.department_id");
+            $stmt->execute();
+
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function get_web_byid($web_id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM web w INNER JOIN hoscode h ON w.hoscode_id = h.hoscode_id INNER JOIN department d ON w.department_id = d.department_id WHERE web_id = :web_id");
+            $stmt->bindParam(':web_id', $web_id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception('Error: ' . $e->getMessage());
+        }
+    }
+
+    function change_status($status, $web_id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare('UPDATE web SET status = :status WHERE web_id = :web_id');
+            $stmt->bindParam(':status', $status);
+            $stmt->bindParam(':web_id', $web_id);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception('' . $e->getMessage());
+        }
+    }
+
+    function add_finish_detail($_post, $web_id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("UPDATE web SET finish_detail = :finish_detail WHERE web_id = :web_id");
+            $stmt->bindParam(":finish_detail", $_post["finish_detail"]);
+            $stmt->bindParam(":web_id", $web_id);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
 }
 
 class Report
@@ -193,8 +305,9 @@ class Report
     {
         $conn = new Connect();
         $conn = $conn->conn;
-
-        $imagePath = saveImage($_files['image'], $path);
+        if ($_files['image']['name'] != '' && $_files['image']['size'] != 0) {
+            $imagePath = saveImage($_files['image'], $path);
+        }
 
         $stmt = $conn->prepare("INSERT INTO report (titlename, firstname, lastname, hoscode_id, department_id, email, tel, reportname, reporttypedate, reportdatedetail, PDF, Excel, CSV, reporttype, reporttypedetail, reportdate, emailback, image, reportdetail) 
         VALUES (:titlename, :firstname, :lastname, :hoscode_id, :department_id, :email, :tel, :reportname, :reporttypedate, :reportdatedetail, :PDF, :Excel, :CSV, :reporttype, :reporttypedetail, :reportdate, :emailback, :image, :reportdetail)");
@@ -243,6 +356,65 @@ class Report
             throw new Exception("Error fetching HDC count: " . $e->getMessage());
         }
     }
+
+    function get_report_all()
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM report r INNER JOIN hoscode h ON r.hoscode_id = h.hoscode_id INNER JOIN department d ON r.department_id = d.department_id");
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function get_report_byid($id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM report r INNER JOIN hoscode h ON r.hoscode_id = h.hoscode_id INNER JOIN department d ON r.department_id = d.department_id WHERE r.report_id = :report_id");
+            $stmt->bindParam(":report_id", $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("" . $e->getMessage());
+        }
+    }
+
+    function change_status($status, $id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("UPDATE report SET status = :status WHERE report_id = :report_id");
+            $stmt->bindParam(":report_id", $id);
+            $stmt->bindParam(":status", $status);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function add_finish_detail($id, $_post)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("UPDATE report SET finish_detail = :finish_detail WHERE report_id = :report_id");
+            $stmt->bindParam(":report_id", $id);
+            $stmt->bindParam(":finish_detail", $_post['finish_detail']);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception('Error: ' . $e->getMessage());
+        }
+    }
 }
 
 class Other
@@ -283,6 +455,66 @@ class Other
             throw new Exception("Error fetching HDC count: " . $e->getMessage());
         }
     }
+
+    function get_other_all()
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM other o INNER JOIN hoscode h ON o.hoscode_id = h.hoscode_id INNER JOIN department d ON o.department_id = d.department_id");
+            $stmt->execute();
+            $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function get_other_byid($id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("SELECT * FROM other o INNER JOIN hoscode h ON o.hoscode_id = h.hoscode_id INNER JOIN department d ON o.department_id = d.department_id WHERE o.other_id = :other_id");
+            $stmt->bindParam(":other_id", $id);
+            $stmt->execute();
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $result;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function change_status($status, $id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("UPDATE other SET status = :status WHERE other_id = :other_id");
+            $stmt->bindParam(":status", $status);
+            $stmt->bindParam(":other_id", $id);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
+    function add_finish_detail($_post, $id)
+    {
+        try {
+            $conn = new Connect();
+            $conn = $conn->conn;
+            $stmt = $conn->prepare("UPDATE other SET finish_detail = :finish_detail WHERE other_id = :other_id");
+            $stmt->bindParam(":finish_detail", $_post['finish_detail']);
+            $stmt->bindParam(":other_id", $id);
+            $stmt->execute();
+            return true;
+        } catch (Exception $e) {
+            throw new Exception("Error: " . $e->getMessage());
+        }
+    }
+
 }
 
 class Admin
@@ -317,7 +549,6 @@ class Admin
             return false; // User not found
         }
     }
-
     function register($_post)
     {
 
@@ -358,6 +589,19 @@ class Hoscode
         $hoscode = $conn->prepare("SELECT * FROM hoscode");
         $hoscode->execute();
         $result = $hoscode->fetchAll(PDO::FETCH_ASSOC);
+        return $result;
+    }
+}
+
+class Department
+{
+    function get_departments()
+    {
+        $conn = new Connect();
+        $conn = $conn->conn;
+        $department = $conn->prepare("SELECT * FROM department");
+        $department->execute();
+        $result = $department->fetchAll(PDO::FETCH_ASSOC);
         return $result;
     }
 }

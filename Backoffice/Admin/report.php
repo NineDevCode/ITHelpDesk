@@ -5,17 +5,17 @@ error_reporting(E_ALL);
 
 // Include Composer's autoloader
 require_once __DIR__ . '/../../vendor/autoload.php';
-include '../../Routes/middleware.php';
-
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
-$dotenv->load();
+include "../../Routes/middleware.php";
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
 authMiddlewareAdmin();
-// Function to check login
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+
 ?>
 
 <!DOCTYPE html>
@@ -61,6 +61,7 @@ authMiddlewareAdmin();
                 </button>
                 <a href="index.php" class="navbar-brand">
                     <b class="me-1">IT</b> HelpDesk
+
                 </a>
                 <button type="button" class="navbar-mobile-toggler" data-toggle="app-sidebar-mobile">
                     <span class="icon-bar"></span>
@@ -124,7 +125,7 @@ authMiddlewareAdmin();
                             <div class="menu-caret"></div>
                         </a>
                         <div class="menu-submenu">
-                            <div class="menu-item active">
+                            <div class="menu-item ">
                                 <a href="./hdc.php" class="menu-link">
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ HDC</div>
                                 </a>
@@ -134,7 +135,7 @@ authMiddlewareAdmin();
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี</div>
                                 </a>
                             </div>
-                            <div class="menu-item">
+                            <div class="menu-item active">
                                 <a href="./report.php" class="menu-link">
                                     <div class="menu-text">การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล</div>
                                 </a>
@@ -236,11 +237,12 @@ authMiddlewareAdmin();
     <script src="../../Assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
     <script src="../../Assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
     <script src="../../Assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
+    <!-- ================== END core-js ================== -->
     <script src="../../Assets/plugins/sweetalert/dist/sweetalert.min.js"></script>
     <script>
         <?php
-        if (isset($_SESSION['accept_hdc'])) {
-            if ($_SESSION['accept_hdc'] == 'success') { ?>
+        if (isset($_SESSION['accept_report'])) {
+            if ($_SESSION['accept_report'] == 'success') { ?>
                 swal({
                     title: 'รับงานสำเร็จ!',
                     text: 'โปรดดำเนินการและติดต่อกลับผู้ใช้ทางอีเมล',
@@ -256,12 +258,12 @@ authMiddlewareAdmin();
                     }
                 });
                 <?php
-                $_SESSION['accept_hdc'] = '';
+                $_SESSION['accept_report'] = '';
             }
-            if ($_SESSION['accept_hdc'] == 'false') {
+            if ($_SESSION['accept_report'] == 'false') {
                 ?>
                 swal({
-                    title: 'ยกเลิกงานไม่สำเร็จ!',
+                    title: 'รับงานไม่สำเร็จ!',
                     text: 'โปรดติดต่อผู้ผัฒนาระบบ',
                     icon: 'error',
                     buttons: {
@@ -275,13 +277,13 @@ authMiddlewareAdmin();
                     }
                 });
                 <?php
-                $_SESSION['accept_hdc'] = '';
+                $_SESSION['accept_report'] = '';
             }
         }
         ?>
         <?php
-        if (isset($_SESSION['cancel_hdc'])) {
-            if ($_SESSION['cancel_hdc'] == 'success') { ?>
+        if (isset($_SESSION['cancel_report'])) {
+            if ($_SESSION['cancel_report'] == 'success') { ?>
                 swal({
                     title: 'ยกเลิกงานสำเร็จ!',
                     text: 'โปรดดำเนินการและติดต่อกลับผู้ใช้ทางอีเมล',
@@ -297,9 +299,9 @@ authMiddlewareAdmin();
                     }
                 });
                 <?php
-                $_SESSION['cancel_hdc'] = '';
+                $_SESSION['cancel_report'] = '';
             }
-            if ($_SESSION['cancel_hdc'] == 'false') {
+            if ($_SESSION['cancel_report'] == 'false') {
                 ?>
                 swal({
                     title: 'ยกเลิกงานไม่สำเร็จ!',
@@ -316,13 +318,13 @@ authMiddlewareAdmin();
                     }
                 });
                 <?php
-                $_SESSION['cancel_hdc'] = '';
+                $_SESSION['cancel_report'] = '';
             }
         }
         ?>
         <?php
-        if (isset($_SESSION['finish_hdc'])) {
-            if ($_SESSION['finish_hdc'] == 'success') {
+        if (isset($_SESSION['finish_report'])) {
+            if ($_SESSION['finish_report'] == 'success') {
                 ?>
                 swal({
                     title: 'ปิดงานสำเร็จ!',
@@ -338,8 +340,8 @@ authMiddlewareAdmin();
                     }
                 });
                 <?php
-                $_SESSION['finish_hdc'] = '';
-            } else if ($_SESSION['finish_hdc'] == 'false') {
+                $_SESSION['finish_report'] = '';
+            } else if ($_SESSION['finish_report'] == 'false') {
                 ?>
                     swal({
                         title: 'ปิดงานไม่สำเร็จ!',
@@ -355,21 +357,20 @@ authMiddlewareAdmin();
                         }
                     });
                     <?php
-                    $_SESSION['finish_hdc'] = '';
+                    $_SESSION['finish_report'] = '';
             }
         }
         ?>
     </script>
-    <!-- ================== END core-js ================== -->
     <script>
         $('#data-table-default').DataTable({
             responsive: true,
             ajax: {
-                url: '../../Routes/ajax.php?ajax_name=hdc',
+                url: '../../Routes/ajax.php?ajax_name=report',
                 type: 'GET',
             },
             columns: [
-                { data: "hdc_id" },
+                { data: "report_id" },
                 { data: "name" },
                 { data: "hoscode_name" },
                 { data: "department_name" },

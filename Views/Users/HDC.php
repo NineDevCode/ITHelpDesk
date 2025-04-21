@@ -7,27 +7,20 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/../../vendor/autoload.php';
 include "../../Class/Connect.php";
 include "../../Class/Class.php";
-
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
-$dotenv->load();
-
-$hoscode = new Hoscode;
+include "../../Routes/middleware.php";
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Function to check login
-function checkLogin()
-{
-    if (!isset($_SESSION['user'])) {
-        header('Location: ../Auth/login.php');
-        exit;
-    }
-}
+authMiddlewareUser();
 
-// Call the function to check login
-checkLogin();
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
+$dotenv->load();
+
+$hoscode = new Hoscode;
+$department = new Department;
+
 ?>
 
 <!DOCTYPE html>
@@ -90,7 +83,7 @@ checkLogin();
                             class="caret ms-lg-2"></b>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end me-1">
-                        <a href="../Auth/logout.php" class="dropdown-item">Log Out</a>
+                        <a href="../Auth/logout.php" class="dropdown-item">ออกจากระบบ</a>
                     </div>
                 </div>
             </div>
@@ -119,6 +112,15 @@ checkLogin();
                         </a>
                     </div>
                     <div class="menu-header">แถบนำทาง</div>
+                    <div class="menu-item">
+                        <a href="./index.php" class="menu-link">
+                            <div class="menu-icon">
+                                <i class="material-icons">description</i>
+                            </div>
+
+                            <div class="menu-text">รายการ</div>
+                        </a>
+                    </div>
                     <div class="menu-item has-sub active">
                         <a href="javascript:;" class="menu-link">
                             <div class="menu-icon">
@@ -204,22 +206,31 @@ checkLogin();
                             </div>
                             <div class="row my-3">
                                 <div class="col-6">
-                                    <select name="hoscode_id" id="hoscode_id" class="form-select hoscode_slelct" required>
+                                    <select name="hoscode_id" id="hoscode_id" class="form-select hoscode_slelct"
+                                        required>
                                         <option value="" disabled selected></option>
                                         <?php
                                         $result = $hoscode->get_hoscode();
                                         foreach ($result as $item) {
                                             ?>
                                             <option value="<?= $item['hoscode_id'] ?>">
-                                                <?= $item['hoscode_id'] . " " . $item['name'] ?></option>
+                                                <?= $item['hoscode_id'] . " " . $item['name'] ?>
+                                            </option>
                                         <?php } ?>
                                     </select>
                                 </div>
                                 <div class="col-6">
-                                    <select name="department_id" id="department_id" class="form-select">
-                                        <option value="" disabled selected>โปรดเลือกหน่วยงาน (ถ้าไม่มีไม่ต้องเลือก)
+                                    <select name="department_id" id="department_id" class="form-select department"
+                                        required>
+                                        <option value="">
                                         </option>
-                                        <option value="1">ประกันสุขภาพ</option>
+                                        <?php
+                                        $departments = $department->get_departments();
+                                        foreach ($departments as $item) {
+                                            ?>
+                                            <option value="<?= $item['department_id'] ?>"><?= $item['department_name'] ?>
+                                            </option>
+                                        <?php } ?>
                                     </select>
                                 </div>
                             </div>
@@ -245,9 +256,9 @@ checkLogin();
                             <div class="row my-3">
                                 <div class="col-6">
                                     <input type="text" name="urlpage" id="urlpage" class="form-control"
-                                        placeholder="URL ของหน้าเว็บที่ต้องการให้ปรับปรุง" required="required">
-                                    <textarea name="problemdetail" id="promblemdetail" class="form-control mt-2"
-                                        placeholder="รายละเอียดของปัญหาที่พบ" rows="8"></textarea>
+                                        placeholder="URL ของหน้าเว็บที่ต้องการให้ปรับปรุง" required>
+                                    <textarea name="promblemdetail" id="promblemdetail" class="form-control mt-2"
+                                        placeholder="รายละเอียดของปัญหาที่พบ" rows="8" required></textarea>
                                 </div>
                                 <div class="col-6">
                                     <label for="problemtype" class="my-2">ประเภทของปัญหาที่พบ

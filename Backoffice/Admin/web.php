@@ -5,17 +5,17 @@ error_reporting(E_ALL);
 
 // Include Composer's autoloader
 require_once __DIR__ . '/../../vendor/autoload.php';
-include '../../Class/Class.php';
 include "../../Routes/middleware.php";
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-authMiddlewareUser();
+authMiddlewareAdmin();
 
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../../');
 $dotenv->load();
+
 ?>
 
 <!DOCTYPE html>
@@ -32,10 +32,12 @@ $dotenv->load();
     <link href="https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
     <link href="../../Assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
+    <link href="../../Assets/plugins/datatables.net-bs5/css/dataTables.bootstrap5.min.css" rel="stylesheet" />
+    <link href="../../Assets/plugins/datatables.net-responsive-bs5/css/responsive.bootstrap5.min.css"
+        rel="stylesheet" />
     <link href="../../Assets/css/vendor.min.css" rel="stylesheet" />
     <link href="../../Assets/css/google/app.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="../../Assets/css/mystyle.css">
-    <link href="../../Assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
     <!-- ================== END core-css ================== -->
 </head>
 
@@ -57,7 +59,7 @@ $dotenv->load();
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a href="index.html" class="navbar-brand">
+                <a href="index.php" class="navbar-brand">
                     <b class="me-1">IT</b> HelpDesk
 
                 </a>
@@ -72,8 +74,8 @@ $dotenv->load();
             <div class="navbar-nav justify-content-end">
                 <div class="navbar-item navbar-user dropdown">
                     <a href="#" class="navbar-link dropdown-toggle d-flex align-items-center" data-bs-toggle="dropdown">
-                        <img src="<?= $_SESSION['user']['picture'] ?>" alt="" />
-                        <span class="d-none d-md-inline"><?= $_SESSION['user']['name'] ?></span> <b
+                        <img src="../../Assets/img/user/profile.png" alt="">
+                        <span class="d-none d-md-inline"><?= $_SESSION['admin_name'] ?></span> <b
                             class="caret ms-lg-2"></b>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end me-1">
@@ -98,10 +100,10 @@ $dotenv->load();
                             <div class="menu-profile-info">
                                 <div class="d-flex align-items-center">
                                     <div class="flex-grow-1">
-                                        <?= $_SESSION['user']['name'] ?>
+                                        <?= $_SESSION['admin_name'] ?>
                                     </div>
                                 </div>
-                                <small><?= $_SESSION['user']['email'] ?></small>
+                                <small><?= $_SESSION['admin_email'] ?></small>
                             </div>
                         </a>
                     </div>
@@ -109,10 +111,9 @@ $dotenv->load();
                     <div class="menu-item">
                         <a href="./index.php" class="menu-link">
                             <div class="menu-icon">
-                                <i class="material-icons">description</i>
+                                <i class="material-icons">donut_small</i>
                             </div>
-
-                            <div class="menu-text">รายการ</div>
+                            <div class="menu-text">ภาพรวมระบบ</div>
                         </a>
                     </div>
                     <div class="menu-item has-sub active">
@@ -129,7 +130,7 @@ $dotenv->load();
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ HDC</div>
                                 </a>
                             </div>
-                            <div class="menu-item">
+                            <div class="menu-item active">
                                 <a href="./web.php" class="menu-link">
                                     <div class="menu-text">การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี</div>
                                 </a>
@@ -139,7 +140,7 @@ $dotenv->load();
                                     <div class="menu-text">การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล</div>
                                 </a>
                             </div>
-                            <div class="menu-item active">
+                            <div class="menu-item">
                                 <a href="./other.php" class="menu-link">
                                     <div class="menu-text">อื่น ๆ</div>
                                 </a>
@@ -159,116 +160,39 @@ $dotenv->load();
         <!-- BEGIN #content -->
         <div id="content" class="app-content">
             <!-- BEGIN page-header -->
-            <h1 class="page-header"><?php if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Views/Users/hdc.php") {
+            <h1 class="page-header"><?php if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Backoffice/Admin/hdc.php") {
                 echo "การใช้งานระบบเว็บไซต์ HDC ";
-            } else if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Views/Users/web.php") {
-                echo "การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี ";
-            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Views/Users/report.php") {
-                echo "การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล ";
-            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Views/Users/other.php") {
-                echo "อื่น ๆ ";
+            } else if ($_SERVER['PHP_SELF'] == "/ITHelpdesk/Backoffice/Admin/web.php") {
+                echo "การใช้งานระบบเว็บไซต์ สสจ.อุทัยธานี";
+            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Backoffice/Admin/report.php") {
+                echo "การขอรายงาน จากกลุ่มงานสุขภาพดิจิทัล";
+            } else if ($_SERVER["PHP_SELF"] == "/ITHelpdesk/Backoffice/Admin/orther.php") {
+                echo "อื่น ๆ";
             } else {
                 echo "ระบบ IT Helpdesk ";
             }
             ?><small>กลุ่มงานสุขภาพดิจิทัล สสจ.อุทัยธานี</small></h1>
-            <!-- END page-header -->
-            <!-- BEGIN panel -->
-            <form action="../../Routes/routes.php?route_name=other_create" method="POST">
-                <div class="card">
-                    <div class="card-header">
-                        <h6>ข้อมูลทั่วไป</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="container">
-                            <div class="row my-3">
-                                <div class="col-2">
-                                    <select name="titlename" id="titlename" class="form-select" required>
-                                        <option value="" disabled selected>โปรดเลือกคำนำหน้าชื่อ</option>
-                                        <option value="นาย">นาย</option>
-                                        <option value="นางสาว">นางสาว</option>
-                                        <option value="นาง">นาง</option>
-                                    </select>
-                                </div>
-                                <div class="col-5">
-                                    <input type="text" name="firstname" id="firstname" class="form-control"
-                                        placeholder="ชื่อ" required>
-                                </div>
-                                <div class="col-5">
-                                    <input type="text" name="lastname" id="lastname" class="form-control"
-                                        placeholder="นามสกุล" required>
-                                </div>
-                            </div>
-                            <div class="row my-3">
-                                <div class="col-6">
-                                    <select name="hoscode_id" id="hoscode_id" class="form-select hoscode_select"
-                                        required>
-                                        <option value="" selected disabled></option>
-                                        <?php
-                                        $hoscode = new Hoscode();
-                                        $hoscode_select = $hoscode->get_hoscode();
-                                        foreach ($hoscode_select as $item) {
-                                            ?>
-                                            <option value="<?= $item['hoscode_id'] ?>">
-                                                <?= $item['hoscode_id'] . ' ' . $item['name'] ?>
-                                            </option>
-                                            <?php
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                                <div class="col-6">
-                                    <select name="department_id" id="department_id"
-                                        class="form-select department_select">
-                                        <option value="" selected disabled></option>
-                                        <?php
-                                        $department = new Department();
-                                        $department_select = $department->get_departments();
-                                        foreach ($department_select as $item) {
-                                            ?>
-                                            <option value="<?= $item['department_id'] ?>"><?= $item['department_name'] ?>
-                                            </option>
-                                            <?php
-                                        }
-                                        ?>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="row my-3">
-                                <div class="col-6">
-                                    <input type="email" name="email" id="email" class="form-control" placeholder="อีเมล"
-                                        required>
-                                </div>
-                                <div class="col-6">
-                                    <input type="text" name="tel" id="tel" class="form-control"
-                                        placeholder="เบอร์โทรศัพท์" required>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="card">
+                <div class="card-body">
+                    <table id="data-table-default" class="table table-striped table-bordered align-middle w-100">
+                        <thead>
+                            <tr>
+                                <th class="text-nowrap">ID</th>
+                                <th class="text-nowrap">ชื่อ - นามสกุล</th>
+                                <th class="text-nowrap">หน่วยบริการ</th>
+                                <th class="text-nowrap">แผนก / กลุ่มงาน</th>
+                                <th class="text-nowrap">อีเมล</th>
+                                <th class="text-nowrap">เบอร์โทรศัพท์</th>
+                                <th class="text-nowrap">สถานะ</th>
+                                <th class="text-nowrap">เครื่องมือ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
                 </div>
-                <div class="card mt-3">
-                    <div class="card-header">
-                        <h6>รายละเอียดปัญหา</h6>
-                    </div>
-                    <div class="card-body">
-                        <div class="container">
-                            <div class="row my-3">
-                                <div class="col-12">
-                                    <textarea name="question" id="question" class="form-control mt-2"
-                                        placeholder="ข้อคำถาม" rows="8" required></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="container">
-                    <div class="row my-3">
-                        <div class="col-12 d-flex justify-content-end">
-                            <button type="submit" class="btn btn-primary">ส่งข้อมูล</button>
-                        </div>
-                    </div>
-                </div>
-            </form>
+            </div>
             <!-- END panel -->
         </div>
         <!-- END #content -->
@@ -282,7 +206,7 @@ $dotenv->load();
 
     <script>
         function handleOther() {
-            var checkbox = document.getElementById("checkbox5");
+            var checkbox = document.getElementById("promlem6");
             var otherProblemContainer = document.getElementById("otherProblem");
 
             if (checkbox.checked) {
@@ -292,7 +216,7 @@ $dotenv->load();
                     otherInput.type = "text";
                     otherInput.name = "otherProblem";
                     otherInput.id = "otherProblemInput"; // Unique ID for the input
-                    otherInput.className = "form-control mt-2";
+                    otherInput.className = "form-control ms-2";
                     otherInput.placeholder = "กรุณาระบุปัญหาอื่น ๆ";
                     otherProblemContainer.appendChild(otherInput);
                 }
@@ -309,11 +233,154 @@ $dotenv->load();
     <script src="../../Assets/js/vendor.min.js"></script>
     <script src="../../Assets/js/app.min.js"></script>
     <script src="../../Assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+    <script src="../../Assets/plugins/datatables.net/js/jquery.dataTables.min.js"></script>
+    <script src="../../Assets/plugins/datatables.net-bs5/js/dataTables.bootstrap5.min.js"></script>
+    <script src="../../Assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
+    <script src="../../Assets/plugins/datatables.net-responsive-bs5/js/responsive.bootstrap5.min.js"></script>
     <!-- ================== END core-js ================== -->
-    <script src="../../Assets/plugins/select2/dist/js/select2.min.js"></script>
+    <script src="../../Assets/plugins/sweetalert/dist/sweetalert.min.js"></script>
     <script>
-        $(".hoscode_select").select2({ placeholder: "โปรดเลือกหน่วยบริการ" });
-        $(".department_select").select2({ placeholder: "โปรดเลือกแผนก / กลุ่มงาน" });
+        <?php
+        if (isset($_SESSION['accept_web'])) {
+            if ($_SESSION['accept_web'] == 'success') { ?>
+                swal({
+                    title: 'รับงานสำเร็จ!',
+                    text: 'โปรดดำเนินการและติดต่อกลับผู้ใช้ทางอีเมล',
+                    icon: 'success',
+                    buttons: {
+                        confirm: {
+                            text: 'รับทราบ',
+                            value: true,
+                            visible: true,
+                            className: 'btn btn-success',
+                            closeModal: true
+                        }
+                    }
+                });
+                <?php
+                $_SESSION['accept_web'] = '';
+            }
+            if ($_SESSION['accept_web'] == 'false') {
+                ?>
+                swal({
+                    title: 'รับงานไม่สำเร็จ!',
+                    text: 'โปรดติดต่อผู้ผัฒนาระบบ',
+                    icon: 'error',
+                    buttons: {
+                        confirm: {
+                            text: 'รับทราบ',
+                            value: true,
+                            visible: true,
+                            className: 'btn btn-success',
+                            closeModal: true
+                        }
+                    }
+                });
+                <?php
+                $_SESSION['accept_web'] = '';
+            }
+        }
+        ?>
+        <?php
+        if (isset($_SESSION['cancel_web'])) {
+            if ($_SESSION['cancel_web'] == 'success') { ?>
+                swal({
+                    title: 'ยกเลิกงานสำเร็จ!',
+                    text: 'โปรดดำเนินการและติดต่อกลับผู้ใช้ทางอีเมล',
+                    icon: 'success',
+                    buttons: {
+                        confirm: {
+                            text: 'รับทราบ',
+                            value: true,
+                            visible: true,
+                            className: 'btn btn-success',
+                            closeModal: true
+                        }
+                    }
+                });
+                <?php
+                $_SESSION['cancel_web'] = '';
+            }
+            if ($_SESSION['cancel_web'] == 'false') {
+                ?>
+                swal({
+                    title: 'ยกเลิกงานไม่สำเร็จ!',
+                    text: 'โปรดติดต่อผู้ผัฒนาระบบ',
+                    icon: 'error',
+                    buttons: {
+                        confirm: {
+                            text: 'รับทราบ',
+                            value: true,
+                            visible: true,
+                            className: 'btn btn-success',
+                            closeModal: true
+                        }
+                    }
+                });
+                <?php
+                $_SESSION['cancel_web'] = '';
+            }
+        }
+        ?>
+        <?php
+        if (isset($_SESSION['finish_web'])) {
+            if ($_SESSION['finish_web'] == 'success') {
+                ?>
+                swal({
+                    title: 'ปิดงานสำเร็จ!',
+                    icon: 'success',
+                    buttons: {
+                        confirm: {
+                            text: 'รับทราบ',
+                            value: true,
+                            visible: true,
+                            className: 'btn btn-success',
+                            closeModal: true
+                        }
+                    }
+                });
+                <?php
+                $_SESSION['finish_web'] = '';
+            } else if ($_SESSION['finish_web'] == 'false') {
+                ?>
+                    swal({
+                        title: 'ปิดงานไม่สำเร็จ!',
+                        icon: 'success',
+                        buttons: {
+                            confirm: {
+                                text: 'รับทราบ',
+                                value: true,
+                                visible: true,
+                                className: 'btn btn-success',
+                                closeModal: true
+                            }
+                        }
+                    });
+                    <?php
+                    $_SESSION['finish_web'] = '';
+            }
+        }
+        ?>
+    </script>
+    <script>
+        $('#data-table-default').DataTable({
+            responsive: true,
+            ajax: {
+                url: '../../Routes/ajax.php?ajax_name=web',
+                type: 'GET',
+            },
+            columns: [
+                { data: "web_id" },
+                { data: "name" },
+                { data: "hoscode_name" },
+                { data: "department_name" },
+                { data: "email" },
+                { data: "tel" },
+                { data: "status" },
+                { data: "tool" },
+            ],
+            order: [[0, 'desc']],
+        });
     </script>
 </body>
 
